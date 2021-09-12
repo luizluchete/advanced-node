@@ -12,11 +12,13 @@
       "paths": {
         "@/*": ["*"],
         "@/tests/*": ["../test/*"]
-      }
-      // "strictNullChecks": false,
+      },
+      "strict": true,
+
   },
   "include": [
-      "src"
+      "src",
+      "tests"
   ],
   // "exclude": [
   //     "**/*.spec.ts",
