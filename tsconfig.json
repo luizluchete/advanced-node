@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
       "outDir": "dist",
-      "rootDir": "src",
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
       "sourceMap": true,
@@ -11,17 +10,12 @@
       "baseUrl": "src",
       "paths": {
         "@/*": ["*"],
-        "@/tests/*": ["../test/*"]
+        "@/tests/*": ["../tests/*"]
       },
-      "strict": true,
-
+      "strict": true
   },
   "include": [
       "src",
       "tests"
-  ],
-  // "exclude": [
-  //     "**/*.spec.ts",
-  //     "**/*.test.ts",
-  // ],
+  ]
 }
