@@ -15,11 +15,10 @@ describe('FacebookApi', () => {
     httpClient = mock()
   })
   beforeEach(() => {
+    httpClient.get.mockResolvedValueOnce({ acess_token: 'any_app_token' })
     sut = new FacebookApi(httpClient, clientId, clientSecret)
   })
   it('Should get app token', async () => {
-    sut = new FacebookApi(httpClient, clientId, clientSecret)
-
     await sut.loadUser({ token: 'any_client_token' })
 
     expect(httpClient.get).toHaveBeenCalledWith({
@@ -28,6 +27,18 @@ describe('FacebookApi', () => {
         client_id: clientId,
         client_secret: clientSecret,
         grant_type: 'client_credentials'
+      }
+    })
+  })
+
+  it('Should get debug token', async () => {
+    await sut.loadUser({ token: 'any_client_token' })
+
+    expect(httpClient.get).toHaveBeenCalledWith({
+      url: 'https://graph.facebook.com/debug_token',
+      params: {
+        acess_token: 'any_app_token',
+        input_token: 'any_client_token'
       }
     })
   })
