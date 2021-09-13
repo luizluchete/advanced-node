@@ -3,29 +3,43 @@ import { FacebookAuthentication } from '@/domain/features'
 import { AcessToken } from '@/domain/models'
 import { mock, MockProxy } from 'jest-mock-extended'
 
+class ServerError extends Error {
+  constructor (error?: Error) {
+    super('Server failed. Try again soon')
+    this.name = 'ServerError'
+    this.stack = error?.stack
+  }
+}
 class FacebookLoginController {
   constructor (private readonly facebookAuthentication: FacebookAuthentication) {}
   async handle (httpRequest: any): Promise<httpResponse> {
-    const { token } = httpRequest
-    if (token === '' || token === null || token === undefined) {
-      return {
-        statusCode: 400,
-        data: new Error('the field token is required')
-      }
-    }
-
-    const result = await this.facebookAuthentication.execute({ token: httpRequest.token })
-    if (result instanceof AcessToken) {
-      return {
-        statusCode: 200,
-        data: {
-          acessToken: result.value
+    try {
+      const { token } = httpRequest
+      if (token === '' || token === null || token === undefined) {
+        return {
+          statusCode: 400,
+          data: new Error('the field token is required')
         }
       }
-    } else {
+
+      const result = await this.facebookAuthentication.execute({ token: httpRequest.token })
+      if (result instanceof AcessToken) {
+        return {
+          statusCode: 200,
+          data: {
+            acessToken: result.value
+          }
+        }
+      } else {
+        return {
+          statusCode: 401,
+          data: result
+        }
+      }
+    } catch (error) {
       return {
-        statusCode: 401,
-        data: result
+        statusCode: 500,
+        data: new ServerError(error as Error)
       }
     }
   }
@@ -104,14 +118,14 @@ describe('FacebookLoginController', () => {
     })
   })
 
-  it('Should return 200 if Authentication succeeds', async () => {
+  it('Should return 500 if Authentication throws', async () => {
+    const error = new Error('infra_error')
+    facebookAuth.execute.mockRejectedValueOnce(error)
     const httpResponse = await sut.handle({ token: 'any_token' })
 
     expect(httpResponse).toEqual({
-      statusCode: 200,
-      data: {
-        acessToken: 'any_value'
-      }
+      statusCode: 500,
+      data: new ServerError(error)
     })
   })
 })
