@@ -1,7 +1,7 @@
 import { LoadUserAccountRepository } from '@/data/contracts/repos'
-import { newDb } from 'pg-mem'
+import { IBackup, newDb } from 'pg-mem'
 
-import { Entity, PrimaryGeneratedColumn, Column, getRepository } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, getRepository, Repository, getConnection } from 'typeorm'
 
 class PgUserAccountRepository {
   async load (params: LoadUserAccountRepository.Params): Promise<LoadUserAccountRepository.Result> {
@@ -33,7 +33,11 @@ class PgUser {
 
 describe('PgUserAccountRepository', () => {
   describe('Load', () => {
-    it('Should return an account if exists', async () => {
+    let sut: PgUserAccountRepository
+    let pgUserRepo: Repository<PgUser>
+    let backup: IBackup
+
+    beforeAll(async () => {
       const db = newDb()
       const connection = await db.adapters.createTypeormConnection({
         type: 'postgres',
@@ -42,37 +46,30 @@ describe('PgUserAccountRepository', () => {
 
       // create schema
       await connection.synchronize()
+      backup = db.backup()
+      pgUserRepo = getRepository(PgUser)
+    })
 
-      // => you now can use your typeorm connection !
+    afterAll(async () => {
+      await getConnection().close()
+    })
 
-      const sut = new PgUserAccountRepository()
-      const pgUserRepo = getRepository(PgUser)
+    beforeEach(() => {
+      backup.restore()
+      sut = new PgUserAccountRepository()
+    })
+    it('Should return an account if exists', async () => {
       await pgUserRepo.save({ email: 'existing_email' })
 
       const account = await sut.load({ email: 'existing_email' })
 
       expect(account).toEqual({ id: '1' })
-      await connection.close()
     })
 
     it('Should return undefied if email does not exists', async () => {
-      const db = newDb()
-      const connection = await db.adapters.createTypeormConnection({
-        type: 'postgres',
-        entities: [PgUser]
-      })
-
-      // create schema
-      await connection.synchronize()
-
-      // => you now can use your typeorm connection !
-
-      const sut = new PgUserAccountRepository()
-
       const account = await sut.load({ email: 'existing_email' })
 
       expect(account).toBeUndefined()
-      await connection.close()
     })
   })
 })
