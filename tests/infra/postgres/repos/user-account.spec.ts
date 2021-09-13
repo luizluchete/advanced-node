@@ -52,6 +52,27 @@ describe('PgUserAccountRepository', () => {
       const account = await sut.load({ email: 'existing_email' })
 
       expect(account).toEqual({ id: '1' })
+      await connection.close()
+    })
+
+    it('Should return undefied if email does not exists', async () => {
+      const db = newDb()
+      const connection = await db.adapters.createTypeormConnection({
+        type: 'postgres',
+        entities: [PgUser]
+      })
+
+      // create schema
+      await connection.synchronize()
+
+      // => you now can use your typeorm connection !
+
+      const sut = new PgUserAccountRepository()
+
+      const account = await sut.load({ email: 'existing_email' })
+
+      expect(account).toBeUndefined()
+      await connection.close()
     })
   })
 })
