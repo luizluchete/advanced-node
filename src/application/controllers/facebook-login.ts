@@ -1,7 +1,8 @@
-import { badRequest, httpResponse, serverError, unauthorized, ok } from '@/application/helpers'
+import { httpResponse, unauthorized, ok } from '@/application/helpers'
 import { FacebookAuthentication } from '@/domain/features'
 import { AcessToken } from '@/domain/models'
-import { ValidationBuilder, ValidationComposite } from '../validation'
+import { Controller } from '@/application/controllers'
+import { ValidationBuilder, Validator } from '../validation'
 
 type HttpRequest = {
   token: string
@@ -10,34 +11,24 @@ type TokenDTO = Error | {
   acessToken: string
 }
 
-export class FacebookLoginController {
-  constructor (private readonly facebookAuthentication: FacebookAuthentication) {}
-  async handle (httpRequest: HttpRequest): Promise<httpResponse<TokenDTO>> {
-    try {
-      const error = this.validate(httpRequest)
-      if (error !== undefined) {
-        return badRequest(error)
-      }
-
-      const acessToken = await this.facebookAuthentication.execute({ token: httpRequest.token })
-      if (acessToken instanceof AcessToken) {
-        return ok<TokenDTO>({
-          acessToken: acessToken.value
-        })
-      } else {
-        return unauthorized()
-      }
-    } catch (error) {
-      return serverError(error as Error)
-    }
+export class FacebookLoginController extends Controller {
+  constructor (private readonly facebookAuthentication: FacebookAuthentication) {
+    super()
   }
 
-  private validate (httpRequest: HttpRequest): Error | undefined {
+  async execute (httpRequest: HttpRequest): Promise<httpResponse<TokenDTO>> {
+    const acessToken = await this.facebookAuthentication.execute({ token: httpRequest.token })
+
+    return acessToken instanceof AcessToken
+      ? ok({ acessToken: acessToken.value })
+      : unauthorized()
+  }
+
+  override buildValidators (httpRequest: HttpRequest): Validator[] {
     const validators = ValidationBuilder
       .of({ value: httpRequest.token, fieldName: 'token' })
       .required()
       .build()
-    const validator = new ValidationComposite(validators)
-    return validator.validate()
+    return validators
   }
 }

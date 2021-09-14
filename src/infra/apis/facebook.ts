@@ -2,7 +2,7 @@ import { LoadFacebookUserApi } from '@/data/contracts/apis'
 import { HttpGetClient } from '@/infra/http'
 
 type AppToken = {
-  acess_token: string
+  access_token: string
 }
 
 type DebugToken = {
@@ -26,12 +26,15 @@ export class FacebookApi implements LoadFacebookUserApi {
   ) {}
 
   async loadUser (params: LoadFacebookUserApi.Params): Promise<LoadFacebookUserApi.Result> {
-    const userInfo = await this.getUserInfo(params.token)
-
-    return {
-      facebookId: userInfo.id,
-      name: userInfo.name,
-      email: userInfo.email
+    try {
+      const userInfo = await this.getUserInfo(params.token)
+      return {
+        facebookId: userInfo.id,
+        name: userInfo.name,
+        email: userInfo.email
+      }
+    } catch (error) {
+      return undefined
     }
   }
 
@@ -51,7 +54,7 @@ export class FacebookApi implements LoadFacebookUserApi {
     return this.httpClient.get({
       url: `${this.baseUrl}/debug_token`,
       params: {
-        acess_token: appToken.acess_token,
+        access_token: appToken.access_token,
         input_token: clientToken
       }
     })
@@ -63,7 +66,7 @@ export class FacebookApi implements LoadFacebookUserApi {
       url: `${this.baseUrl}/${debugToken.data.user_id}`,
       params: {
         fields: ['id', 'name', 'email'].join(','),
-        acess_token: clientToken
+        access_token: clientToken
       }
     })
   }
