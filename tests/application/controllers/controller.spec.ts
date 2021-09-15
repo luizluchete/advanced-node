@@ -1,6 +1,5 @@
 import { Controller } from '@/application/controllers'
 import { ServerError } from '@/application/errors'
-import { AcessToken } from '@/domain/models'
 import { ValidationComposite } from '@/application/validation/'
 import { mocked } from 'ts-jest/utils'
 import { httpResponse } from '../helpers'
@@ -24,7 +23,7 @@ describe('FacebookLoginController', () => {
 
   beforeAll(() => {
     facebookAuth = jest.fn()
-    facebookAuth.mockResolvedValue(new AcessToken('any_value'))
+    facebookAuth.mockResolvedValue({ accessToken: 'any_token' })
   })
 
   beforeEach(() => {
