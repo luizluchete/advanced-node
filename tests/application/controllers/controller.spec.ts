@@ -1,8 +1,6 @@
 import { Controller } from '@/application/controllers'
 import { ServerError } from '@/application/errors'
-import { FacebookAuthentication } from '@/domain/features'
 import { AcessToken } from '@/domain/models'
-import { mock, MockProxy } from 'jest-mock-extended'
 import { ValidationComposite } from '@/application/validation/'
 import { mocked } from 'ts-jest/utils'
 import { httpResponse } from '../helpers'
@@ -21,12 +19,12 @@ class ControllerStub extends Controller {
 }
 
 describe('FacebookLoginController', () => {
-  let facebookAuth: MockProxy<FacebookAuthentication>
+  let facebookAuth: jest.Mock
   let sut: ControllerStub
 
   beforeAll(() => {
-    facebookAuth = mock()
-    facebookAuth.execute.mockResolvedValue(new AcessToken('any_value'))
+    facebookAuth = jest.fn()
+    facebookAuth.mockResolvedValue(new AcessToken('any_value'))
   })
 
   beforeEach(() => {
