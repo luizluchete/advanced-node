@@ -8,7 +8,7 @@ type HttpRequest = {
   token: string
 }
 type TokenDTO = Error | {
-  acessToken: string
+  accessToken: string
 }
 
 export class FacebookLoginController extends Controller {
@@ -20,7 +20,7 @@ export class FacebookLoginController extends Controller {
     const acessToken = await this.facebookAuthentication.execute({ token })
 
     return acessToken instanceof AcessToken
-      ? ok({ acessToken: acessToken.value })
+      ? ok({ accessToken: acessToken.value })
       : unauthorized()
   }
 
