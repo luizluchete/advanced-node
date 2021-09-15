@@ -7,7 +7,7 @@ export class PgUser {
   @Column({ nullable: true })
   name?: string
 
-  @Column()
+  @Column({ nullable: true })
   email!: string
 
   @Column({ nullable: true })
