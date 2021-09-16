@@ -55,14 +55,51 @@ describe('JwtTokenHandler', () => {
 
   describe('validateToken', () => {
     let token: string
+    let key: string
     beforeAll(() => {
       token = 'any_token'
+      key = 'any_key'
+      fakeJwt.verify.mockImplementation(() => {
+        return { key }
+      })
     })
 
     it('Should call sign with correct params', async () => {
       await sut.validateToken({ token })
 
       expect(fakeJwt.verify).toHaveBeenCalledWith(token, secret)
+      expect(fakeJwt.verify).toHaveBeenCalledTimes(1)
+    })
+
+    it('Should return the key used to sign', async () => {
+      const generatedKey = await sut.validateToken({ token })
+
+      expect(generatedKey).toBe(key)
+      expect(fakeJwt.verify).toHaveBeenCalledTimes(1)
+    })
+
+    it('Should rethrow if vefify return throw ', async () => {
+      fakeJwt.verify.mockImplementationOnce(() => { throw new Error('key_error') })
+
+      const promise = sut.validateToken({ token })
+
+      await expect(promise).rejects.toThrow(new Error('key_error'))
+    })
+
+    it('Should throw if vefify returns null', async () => {
+      fakeJwt.verify.mockImplementationOnce(() => null)
+
+      const promise = sut.validateToken({ token })
+
+      await expect(promise).rejects.toThrow()
+    })
+
+    it('Should throw if vefify returns undefied', async () => {
+      fakeJwt.verify.mockImplementationOnce(() => undefined)
+
+      const promise = sut.validateToken({ token })
+
+      await expect(promise).rejects.toThrow()
     })
   })
 })
